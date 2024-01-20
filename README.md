@@ -36,10 +36,10 @@ A step-by-step series of examples that tell you how to get a development environ
 
 1. Clone the repository:
    ```bash
-   git clone [repository URL]```
+   git clone https://github.com/ryuukkk/seehorse.git```
 2. Run the following to install the required libraries
 
    ```pip install -r requirements.txt```
 3. Run the Flask server
 
-    ```python app.py```
+    ```python app/app.py```
