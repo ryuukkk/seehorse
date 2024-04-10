@@ -12,19 +12,26 @@ import re
 import string
 import einops
 import numpy as np
+import os
 
-def standardize(s):
-  s = tf.strings.lower(s)
-  s = tf.strings.regex_replace(s, f'[{re.escape(string.punctuation)}]', '')
-  s = tf.strings.join(['[START]', s, '[END]'], separator=' ')
-  return s
+os.chdir('/home/crow/Iota/seehorse')
 
-# Use the top 6000 words for a vocabulary.
-vocabulary_size = 6000
-tokenizer = tf.keras.layers.TextVectorization(
-    max_tokens=vocabulary_size,
-    standardize=standardize,
-    ragged=True)
-# Learn the vocabulary from the caption data.
+# Get the pretrained Encoder
+IMAGE_SHAPE = (224, 224, 3)
+mobilenet = tf.keras.applications.MobileNetV3Small(
+    input_shape=IMAGE_SHAPE,
+    include_top=False,
+    include_preprocessing=True)
+mobilenet.trainable = False
 
-tokenizer.adapt(flickr_train.map(lambda fp,txt: txt).unbatch().batch(1024))
+# Load saved tokenizer
+from tensorflow.keras.layers.experimental.preprocessing import TextVectorization
+
+def load_text_vectorization_layer(load_path='resources/saved/tokenizer'):
+    loaded_model = tf.keras.models.load_model(load_path, custom_objects={'TextVectorization': TextVectorization})
+    text_vectorization_layer = loaded_model.layers[0]
+    return text_vectorization_layer
+
+
+tokenizer = load_text_vectorization_layer()
+print(tokenizer)
