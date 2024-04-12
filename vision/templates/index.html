@@ -1,0 +1,34 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dark Mode with Camera, Text, and Voice</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'css/styles.css' %}"
+    />
+  </head>
+  <body>
+    <h2>SeeHorse</h2>
+    <div class="container">
+      <div id="videoContainer">
+        <video id="localVideo" autoplay muted></video>
+      </div>
+      <div>
+        <button id="startRecording">Start Recording</button>
+        <div class="Recordingclass">
+          <p id="transcription"></p>
+          <p id="Backend_response"></p>
+        </div>
+      </div>
+    </div>
+    <script>
+      const csrfToken = "{{ csrf_token }}";
+    </script>
+    <script src="{% static 'js/script.js' %}"></script>
+  </body>
+</html>
