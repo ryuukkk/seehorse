@@ -4,8 +4,11 @@ import cv2
 import openai
 import requests
 import matplotlib.pyplot as plt
+import os
 
-with open('openai_key.txt', 'r') as f:
+print(os.chdir('../..'))
+# print(os.getcwd())
+with open('/home/crow/Iota/seehorse/src/predict/openai_key.txt', 'r') as f:
     API_KEY = f.read()
 
 
@@ -17,7 +20,7 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode('utf-8')
 
 
-def describe_image(image_path: str=None) -> str:
+def describe_image(image_path=None) -> str:
     """
     Reads an image from a file, encodes it, and uses OpenAI's API to describe it.
 
@@ -69,7 +72,7 @@ def describe_image(image_path: str=None) -> str:
     return description
 
 
-def generate_response(prompt: str, description: str) -> str:
+def generate_response(prompt: str, description=None) -> str:
     """
     Generates a response based on the user's prompt and an image description using the Chat Completions API.
 
@@ -80,6 +83,8 @@ def generate_response(prompt: str, description: str) -> str:
     Returns:
     - str - A generated response based on the prompt and description.
     """
+    if not description:
+        description = 'No image given'
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
