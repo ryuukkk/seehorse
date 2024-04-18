@@ -1,39 +1,48 @@
 import base64
-import numpy as np
+# import numpy as np
 import cv2
-import openai
+# import openai
 import requests
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import os
 
-print(os.chdir('../..'))
+print(os.chdir('C:\\Users\\Kartik\\PycharmProjects\\seehorse'))
 # print(os.getcwd())
-with open('/home/crow/Iota/seehorse/src/predict/openai_key.txt', 'r') as f:
+with open('src/predict/openai_key.txt', 'r') as f:
     API_KEY = f.read()
 
 
-def encode_image(image_path):
+def encode_image(image_array):
     """
-    Encodes an image file to a base64 string.
+    Encodes an image array to a base64 string.
     """
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
+    _, buffer = cv2.imencode('.jpg', image_array)
+    base64_image = base64.b64encode(buffer).decode('utf-8')
+    return base64_image
 
 
-def describe_image(image_path=None) -> str:
+# def encode_image(image_path):
+#     """
+#     Encodes an image file to a base64 string.
+#     """
+#     with open(image_path, "rb") as image_file:
+#         return base64.b64encode(image_file.read()).decode('utf-8')
+
+
+def describe_image(image_array=None) -> str:
     """
-    Reads an image from a file, encodes it, and uses OpenAI's API to describe it.
+    Encodes an image array and uses OpenAI's API to describe it.
 
     Parameters:
-    - image_path: str - The file path of the image to describe.
+    - image_array: numpy.ndarray - The image array to describe.
 
     Returns:
     - str - A description of the image or an error message.
     """
-    if not image_path:
-        return 'No image'
+    if image_array is None:
+        return 'No image provided'
 
-    base64_image = encode_image(image_path)
+    base64_image = encode_image(image_array)
 
     headers = {
         "Content-Type": "application/json",
@@ -65,11 +74,66 @@ def describe_image(image_path=None) -> str:
     try:
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
         response_data = response.json()
-        description = response_data['choices'][0]['message']['content']
+        if response_data.get('choices'):
+            description = response_data['choices'][0]['message']['content']
+        else:
+            description = "Error in processing the image description."
     except Exception as e:
-        description = e
+        description = str(e)
 
     return description
+
+
+# def describe_image(image_path=None) -> str:
+#     """
+#     Reads an image from a file, encodes it, and uses OpenAI's API to describe it.
+#
+#     Parameters:
+#     - image_path: str - The file path of the image to describe.
+#
+#     Returns:
+#     - str - A description of the image or an error message.
+#     """
+#     if not image_path:
+#         return 'No image'
+#
+#     base64_image = encode_image(image_path)
+#
+#     headers = {
+#         "Content-Type": "application/json",
+#         "Authorization": f"Bearer {API_KEY}"
+#     }
+#
+#     payload = {
+#         "model": "gpt-4-turbo",
+#         "messages": [
+#             {
+#                 "role": "user",
+#                 "content": [
+#                     {
+#                         "type": "text",
+#                         "text": "What’s in this image?"
+#                     },
+#                     {
+#                         "type": "image_url",
+#                         "image_url": {
+#                             "url": f"data:image/jpeg;base64,{base64_image}"
+#                         }
+#                     }
+#                 ]
+#             }
+#         ],
+#         "max_tokens": 80
+#     }
+#
+#     try:
+#         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+#         response_data = response.json()
+#         description = response_data['choices'][0]['message']['content']
+#     except Exception as e:
+#         description = e
+#
+#     return description
 
 
 def generate_response(prompt: str, description=None) -> str:
@@ -91,7 +155,8 @@ def generate_response(prompt: str, description=None) -> str:
     }
 
     messages = [
-        {"role": "system", "content": "Act like a real human guiding the blind user. Given a description sorroundings and a user's prompt, determine if the prompt asks for a scene description. If so, respond based on the image description in very short. Include safety advice if any danger is detected. If the prompt does not seek a scene description, respond appropriately without referring to the image."},
+        {"role": "system",
+         "content": "Act like a funny human guiding the blind user. Given a description sorroundings and a user's prompt, determine if the prompt asks for a scene description. If so, respond based on the image description in very short. Include safety advice if any danger is detected. If the prompt does not seek a scene description, respond appropriately without referring to the image."},
         {"role": "user", "content": description},
         {"role": "user", "content": prompt}
     ]
@@ -111,5 +176,5 @@ def generate_response(prompt: str, description=None) -> str:
     except Exception as e:
         return f"Failed to generate response: {str(e)}"
 
-response = generate_response('describe the scene', describe_image('/home/crow/Iota/seehorse/src/predict/pit.jpg'))
-print(response)
+# response = generate_response('describe the scene', describe_image('src/predict/pit.jpg'))
+# print(response)
