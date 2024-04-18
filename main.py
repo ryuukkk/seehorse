@@ -1,21 +1,31 @@
-import tkinter as tk
+import pygame
 import cv2
 import speech_recognition as sr
-from threading import Thread
+import threading
 from src import predict
-from gtts import gTTS
-from playsound import playsound
+from pygame import mixer
 import os
 
-# Setup the webcam capture
+# Initialize Pygame and Mixer for audio
+pygame.init()
+mixer.init()
+screen = pygame.display.set_mode((640, 480))
+pygame.display.set_caption("Seehorse Assistance")
+
+# Webcam setup
 cap = cv2.VideoCapture(0)
+
 
 def speak(text):
     tts = gTTS(text=text, lang='en')
     filename = 'temp_audio.mp3'
     tts.save(filename)
-    playsound(filename)
+    mixer.music.load(filename)
+    mixer.music.play()
+    while mixer.music.get_busy():  # wait for audio to finish playing
+        pygame.time.Clock().tick(10)
     os.remove(filename)
+
 
 def listen_and_respond():
     recognizer = sr.Recognizer()
@@ -46,19 +56,23 @@ def listen_and_respond():
                 else:
                     speak("Failed to capture the image.")
 
-    listening_thread = Thread(target=continuous_listen)
+    listening_thread = threading.Thread(target=continuous_listen)
     listening_thread.start()
 
-    return listening_thread
 
-# GUI setup
-root = tk.Tk()
-root.geometry("400x300")
+def main():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
-start_btn = tk.Button(root, text="Start", command=listen_and_respond)
-start_btn.pack(pady=20)
+        screen.fill((255, 255, 255))  # Clear screen with white
+        pygame.display.flip()  # Update the full display
 
-stop_btn = tk.Button(root, text="Stop", command=lambda: setattr(listen_and_respond(), 'listening', False))
-stop_btn.pack(pady=20)
+    pygame.quit()
+    cap.release()
 
-root.mainloop()
+
+if __name__ == "__main__":
+    main()
